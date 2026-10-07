@@ -1,0 +1,23 @@
+# Secrets – never commit
+.env
+.env.*
+!.env.example
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+
+# Claude Code personal settings
+.claude/settings.local.json
+
+# Private notes (Word drafts and lock files)
+*.docx
+~$*
+
+# Downloaded data
+data/
+
+# Windows system files
+Thumbs.db
+desktop.ini

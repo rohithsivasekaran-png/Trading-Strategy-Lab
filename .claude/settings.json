@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "defaultMode": "default",
+    "deny": [
+      "mcp__alpaca__update_account_config",
+      "mcp__alpaca__close_all_positions",
+      "mcp__alpaca__cancel_all_orders",
+      "mcp__alpaca__place_option_order",
+      "mcp__alpaca__exercise_options_position",
+      "mcp__alpaca__do_not_exercise_options_position",
+      "Read(./.env)",
+      "Read(./.env.*)"
+    ]
+  }
+}
