@@ -1,0 +1,22 @@
+[project]
+name = "trading-agent"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+authors = [
+    { name = "Rohith Sivasekaran", email = "298775313+rohithsivasekaran-png@users.noreply.github.com" }
+]
+requires-python = ">=3.12"
+dependencies = [
+    "alpaca-py>=0.44.0",
+    "matplotlib>=3.11.2",
+    "pandas>=3.0.6",
+    "python-dotenv>=1.2.4",
+]
+
+[project.scripts]
+trading-agent = "trading_agent:main"
+
+[build-system]
+requires = ["uv_build>=0.12.18,<0.13.0"]
+build-backend = "uv_build"
