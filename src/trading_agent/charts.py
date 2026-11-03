@@ -1,4 +1,4 @@
-import sys
+import argparse
 from pathlib import Path
 
 import matplotlib
@@ -28,6 +28,8 @@ def build_chart(
     signals: pd.DataFrame,
     backtest: pd.DataFrame,
     symbol: str,
+    short_window: int = 50,
+    long_window: int = 200,
 ) -> plt.Figure:
     df = pd.merge(
         bars[["timestamp", "open", "close"]],
@@ -103,8 +105,8 @@ def build_chart(
 
     # Panel 3: price with signals and trades
     ax3.plot(dates, window["close"], color="black", linestyle="-", linewidth=1, label="Close")
-    ax3.plot(dates, window["sma_short"], color="tab:green", linestyle="-.", linewidth=1, label="50-day SMA")
-    ax3.plot(dates, window["sma_long"], color="tab:red", linestyle=":", linewidth=1.3, label="200-day SMA")
+    ax3.plot(dates, window["sma_short"], color="tab:green", linestyle="-.", linewidth=1, label=f"{short_window}-day SMA")
+    ax3.plot(dates, window["sma_long"], color="tab:red", linestyle=":", linewidth=1.3, label=f"{long_window}-day SMA")
 
     buys = window[window["entry"]]
     sells = window[window["exit"]]
@@ -122,20 +124,38 @@ def build_chart(
     return fig
 
 
-def save_chart(fig: plt.Figure, symbol: str) -> Path:
+def _window_suffix(short_window: int, long_window: int) -> str:
+    if (short_window, long_window) == (50, 200):
+        return ""
+    return f"_{short_window}_{long_window}"
+
+
+def save_chart(
+    fig: plt.Figure, symbol: str, short_window: int = 50, long_window: int = 200
+) -> Path:
     results_dir = Path("results")
     results_dir.mkdir(exist_ok=True)
-    path = results_dir / f"{symbol}_backtest.png"
+    suffix = _window_suffix(short_window, long_window)
+    path = results_dir / f"{symbol}{suffix}_backtest.png"
     fig.savefig(path, dpi=150, bbox_inches="tight")
     return path
 
 
 if __name__ == "__main__":
-    symbol = sys.argv[1]
-    bars = pd.read_csv(f"data/{symbol}.csv", parse_dates=["timestamp"])
-    signals = pd.read_csv(f"data/{symbol}_signals.csv", parse_dates=["timestamp"])
-    backtest = pd.read_csv(f"data/{symbol}_backtest.csv", parse_dates=["timestamp"])
+    parser = argparse.ArgumentParser()
+    parser.add_argument("symbol")
+    parser.add_argument("--short-window", type=int, default=50)
+    parser.add_argument("--long-window", type=int, default=200)
+    args = parser.parse_args()
 
-    chart = build_chart(bars, signals, backtest, symbol)
-    output_path = save_chart(chart, symbol)
+    symbol = args.symbol
+    suffix = _window_suffix(args.short_window, args.long_window)
+    bars = pd.read_csv(f"data/{symbol}.csv", parse_dates=["timestamp"])
+    signals = pd.read_csv(f"data/{symbol}{suffix}_signals.csv", parse_dates=["timestamp"])
+    backtest = pd.read_csv(f"data/{symbol}{suffix}_backtest.csv", parse_dates=["timestamp"])
+
+    chart = build_chart(
+        bars, signals, backtest, symbol, args.short_window, args.long_window
+    )
+    output_path = save_chart(chart, symbol, args.short_window, args.long_window)
     print(f"Saved chart to {output_path}")

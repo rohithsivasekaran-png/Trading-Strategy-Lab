@@ -1,10 +1,8 @@
-import sys
+import argparse
 from pathlib import Path
 
 import numpy as np
 import pandas as pd
-
-TRADING_DAYS_PER_YEAR = 252
 
 
 def run_backtest(
@@ -78,6 +76,7 @@ def compute_metrics(
     timestamps: pd.Series,
     trade_count: int,
     pct_invested: float,
+    periods_per_year: int = 252,
 ) -> dict:
     daily_returns = equity.pct_change().dropna()
     n_days = len(equity) - 1
@@ -85,12 +84,12 @@ def compute_metrics(
     initial_value = equity.iloc[0]
     final_value = equity.iloc[-1]
     total_return = final_value / initial_value - 1
-    years = n_days / TRADING_DAYS_PER_YEAR
+    years = n_days / periods_per_year
     cagr = (final_value / initial_value) ** (1 / years) - 1 if years > 0 else float("nan")
 
-    vol = daily_returns.std() * np.sqrt(TRADING_DAYS_PER_YEAR)
+    vol = daily_returns.std() * np.sqrt(periods_per_year)
     sharpe = (
-        daily_returns.mean() / daily_returns.std() * np.sqrt(TRADING_DAYS_PER_YEAR)
+        daily_returns.mean() / daily_returns.std() * np.sqrt(periods_per_year)
         if daily_returns.std() > 0
         else float("nan")
     )
@@ -140,22 +139,42 @@ def print_metrics_table(strategy_metrics: dict, buyhold_metrics: dict) -> None:
         print(f"{label:<{label_width}}  {strategy_val:>18}  {buyhold_val:>18}")
 
 
-def save_backtest(df: pd.DataFrame, symbol: str) -> Path:
+def _window_suffix(short_window: int, long_window: int) -> str:
+    if (short_window, long_window) == (50, 200):
+        return ""
+    return f"_{short_window}_{long_window}"
+
+
+def save_backtest(
+    df: pd.DataFrame, symbol: str, short_window: int = 50, long_window: int = 200
+) -> Path:
     data_dir = Path("data")
     data_dir.mkdir(exist_ok=True)
-    path = data_dir / f"{symbol}_backtest.csv"
+    suffix = _window_suffix(short_window, long_window)
+    path = data_dir / f"{symbol}{suffix}_backtest.csv"
     df[["timestamp", "strategy_equity", "buyhold_equity"]].to_csv(path, index=False)
     return path
 
 
 if __name__ == "__main__":
-    symbol = sys.argv[1]
+    parser = argparse.ArgumentParser()
+    parser.add_argument("symbol")
+    parser.add_argument("--short-window", type=int, default=50)
+    parser.add_argument("--long-window", type=int, default=200)
+    parser.add_argument("--cost", type=float, default=0.0005)
+    parser.add_argument("--periods-per-year", type=int, default=252)
+    args = parser.parse_args()
+
+    symbol = args.symbol
+    suffix = _window_suffix(args.short_window, args.long_window)
     bars = pd.read_csv(f"data/{symbol}.csv", parse_dates=["timestamp"])
-    signals = pd.read_csv(f"data/{symbol}_signals.csv", parse_dates=["timestamp"])
+    signals = pd.read_csv(f"data/{symbol}{suffix}_signals.csv", parse_dates=["timestamp"])
 
     initial_capital = 10_000.0
-    result = run_backtest(bars, signals, initial_capital=initial_capital)
-    save_backtest(result, symbol)
+    result = run_backtest(
+        bars, signals, initial_capital=initial_capital, cost_rate=args.cost
+    )
+    save_backtest(result, symbol, args.short_window, args.long_window)
 
     first_entry_idx = result.index[result["entry"]][0]
     active = result.loc[first_entry_idx:].reset_index(drop=True)
@@ -166,12 +185,14 @@ if __name__ == "__main__":
         active["timestamp"],
         trade_count=strategy_trades,
         pct_invested=active["position"].mean() * 100,
+        periods_per_year=args.periods_per_year,
     )
     buyhold_metrics = compute_metrics(
         active["buyhold_equity"],
         active["timestamp"],
         trade_count=1,
         pct_invested=active["buyhold_invested"].mean() * 100,
+        periods_per_year=args.periods_per_year,
     )
 
     print_metrics_table(strategy_metrics, buyhold_metrics)
