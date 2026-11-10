@@ -29,12 +29,12 @@ BTC-USD trades 7 days a week, while EWJ and VGK only trade on the roughly 5-day 
 
 ## Method
 
-- **Signal at close, trade at next open.** The crossover signal is computed using each day's closing price, but the resulting trade is only executed at the next day's open — no look-ahead bias.
+- **Signal at close, trade at next open.** The crossover signal is computed using each day's closing price, but the resulting trade is only executed at the next day's open - no look-ahead bias.
 - **Split- and dividend-adjusted data.** Price history is pulled with full adjustment for splits and dividends, so returns reflect total return, not just price change.
 - **Costs on every trade.** A transaction cost is applied on every entry and every exit, not just once per position.
 - **Buy-and-hold benchmark.** Each backtest is compared against a buy-and-hold benchmark starting from the same first entry day, so the comparison is apples-to-apples rather than against the full history.
-- **Common comparison period.** To compare across markets fairly, results are also computed over a common window: 2021-10-08 to 2026-10-07. The start is the day after the first valid signal for BTC-USD's 70/280 window — the longest warm-up of the four runs, so it's the latest date any run can start from. The end is EWJ's last available data date — the earliest cutoff of the three instruments. Both ends of the window are set by this rule, not chosen to flatter a particular result.
-- **Automated sanity test.** A pytest check confirms that a signal held "always on" reproduces the buy-and-hold result exactly — a basic correctness check on the backtest engine itself.
+- **Common comparison period.** To compare across markets fairly, results are also computed over a common window: 2021-10-08 to 2026-10-07. The start is the day after the first valid signal for BTC-USD's 70/280 window - the longest warm-up of the four runs, so it's the latest date any run can start from. The end is EWJ's last available data date - the earliest cutoff of the three instruments. Both ends of the window are set by this rule, not chosen to flatter a particular result.
+- **Automated sanity test.** A pytest check confirms that a signal held "always on" reproduces the buy-and-hold result exactly - a basic correctness check on the backtest engine itself.
 - **Regression check after code changes.** After later changes to the code, EWJ was re-run with the default 50/200 settings and the metrics matched the original run exactly (CAGR 9.02%, Sharpe 0.66, max drawdown -29.17%), confirming the change hadn't altered the backtest engine's behavior.
 - **Design decisions fixed before seeing results.** The 50/200 default window, and Bitcoin's windows and costs, were fixed before running the backtests. The common comparison period was then defined by the warm-up/end-of-data rule above, after the fact, rather than picked to fit the results.
 
@@ -42,10 +42,10 @@ BTC-USD trades 7 days a week, while EWJ and VGK only trade on the roughly 5-day 
 
 The charts below show each instrument's full price history (2016–2026); the comparison table after them is restricted to the common period (2021-10-08 to 2026-10-07) described above.
 
-### EWJ (Japan) — full history, 2016–2026
+### EWJ (Japan) - full history, 2016–2026
 ![EWJ backtest](results/EWJ_backtest.png)
 
-### VGK (Europe) — full history, 2016–2026
+### VGK (Europe) - full history, 2016–2026
 ![VGK backtest](results/VGK_backtest.png)
 
 ### Comparison over the common period (2021-10-08 to 2026-10-07)
@@ -61,13 +61,13 @@ The charts below show each instrument's full price history (2016–2026); the co
 
 - **Japan was the most consistent.** The strategy beat buy-and-hold on every measure in the table over the common period: higher return, better risk-adjusted return, and a much smaller drawdown.
 - **Europe lagged on return but had smaller drawdowns.** The strategy trailed buy-and-hold by about 2% a year over the common period (and by more over the full 2016-2026 history), but roughly matched it on Sharpe and cut the drawdown considerably.
-- **Bitcoin was fragile.** With its purpose-built 70/280 window, the strategy produced the largest gain of any run. With the same 50/200 window used for the ETFs, it underperformed buy-and-hold. That sensitivity to parameter choice is itself a finding — the result is not robust to the window.
+- **Bitcoin was fragile.** With its purpose-built 70/280 window, the strategy produced the largest gain of any run. With the same 50/200 window used for the ETFs, it underperformed buy-and-hold. That sensitivity to parameter choice is itself a finding the result is not robust to the window.
 
-**Conclusion: the hypothesis is partly confirmed.** The strategy worked most consistently in Japan, as expected. But it did not work "equally well" across markets — Europe was closer to a wash, and Bitcoin's results depended heavily on the chosen window.
+**Conclusion: the hypothesis is partly confirmed.** The strategy worked most consistently in Japan, as expected. But it did not work "equally well" across markets, Europe was closer to a wash, and Bitcoin's results depended heavily on the chosen window.
 
 ## Key lesson: the test period matters as much as the strategy
 
-Looking at the full available history (2016–2026) rather than only the common comparison window shows the limits of trend-following more clearly. The strategy sold near the bottom of the sudden March 2020 crash — a trend-following signal reacts to a move that has already happened, so it can exit right as a sharp drop is ending. It performed better in the slow, grinding 2022 bear market, where the trend had time to develop before the signal caught up. In short: this kind of strategy tends to help in slow declines and can hurt in sudden ones.
+Looking at the full available history (2016–2026) rather than only the common comparison window shows the limits of trend-following more clearly. The strategy sold near the bottom of the sudden March 2020 crash a trend-following signal reacts to a move that has already happened, so it can exit right as a sharp drop is ending. It performed better in the slow, grinding 2022 bear market, where the trend had time to develop before the signal caught up. In short: this kind of strategy tends to help in slow declines and can hurt in sudden ones.
 
 ## Limitations
 
@@ -85,7 +85,7 @@ Because an AI coding agent (Claude Code) was used to help build and run parts of
 
 - **Paper trading keys only.** No live brokerage credentials are used anywhere in this project.
 - **Local-scope Alpaca MCP server with limited toolsets.** The agent only has access to the tools needed for data and paper trading, not the full account surface.
-- **Explicit deny rules** in `.claude/settings.json` block high-risk actions outright: updating account configuration, closing all positions, cancelling all orders, and placing or exercising options — regardless of what the agent is asked to do. The same file also denies reading `.env` or any `.env.*` file, so the agent cannot read API keys directly.
+- **Explicit deny rules** in `.claude/settings.json` block high-risk actions outright: updating account configuration, closing all positions, cancelling all orders, and placing or exercising options regardless of what the agent is asked to do. The same file also denies reading `.env` or any `.env.*` file, so the agent cannot read API keys directly.
 - **Manual permission mode.** The agent must ask before taking actions rather than running autonomously.
 - **Keys kept out of the repository.** The backtest code reads its own Alpaca keys from a local, gitignored `.env` file. The Alpaca MCP server reads its keys from Claude Code's local user configuration instead. Both are stored outside the repository and are never committed.
 - **AI output cross-checked**, not accepted at face value (see "Working with AI" below).
@@ -95,7 +95,7 @@ Because an AI coding agent (Claude Code) was used to help build and run parts of
 Claude Code wrote most of the code in this project. I designed the strategy, the controls described above, and the evaluation approach, and I checked the agent's work rather than taking it on trust. That verification caught real issues along the way:
 
 - A mismatch in historical data coverage between data feeds (IEX vs. the full SIP feed), which affected how far back usable data actually went.
-- A "warm-up" period at the start of each price series, before the long moving average has enough days of data to be meaningful, which was distorting the metrics — understating returns and volatility, and showing buy-and-hold as only 93% invested — until it was explicitly excluded.
+- A "warm-up" period at the start of each price series, before the long moving average has enough days of data to be meaningful, which was distorting the metrics understating returns and volatility, and showing buy-and-hold as only 93% invested until it was explicitly excluded.
 - The first "golden cross" in the data turning out to be an artifact of that same warm-up period rather than a genuine trend signal.
 
 ## Project structure and how to run it
@@ -149,4 +149,5 @@ Testing ICT (Inner Circle Trader) concepts and Quarterly Theory with the same ri
 
 ## Disclaimer
 
-This is an educational project. All results come from backtests and paper trading only — no real money has been invested or is recommended based on this work. Nothing here is investment advice.
+This is an educational project. All results come from backtests and paper trading only  no real money has been invested or is recommended based on this work. Nothing here is investment advice.
+
