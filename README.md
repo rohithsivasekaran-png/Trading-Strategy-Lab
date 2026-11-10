@@ -2,7 +2,7 @@
 
 ## Chapter 1: Does Trend-Following Work Everywhere?
 
-A backtesting project that tests whether a simple moving-average trend-following strategy performs consistently across European, Japanese, and crypto markets — built with AI assistance, run only on paper money and historical data.
+A backtesting project that tests whether a simple moving-average trend-following strategy performs consistently across European, Japanese, and crypto markets - built with AI assistance, run only on paper money and historical data.
 
 ## Why I built this
 
