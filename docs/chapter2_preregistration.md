@@ -39,6 +39,7 @@ Do popular ICT concepts, turned into precise rules, show a real edge over random
 - **Time exit:** a trade still open at the end of the window in which it was entered is closed at that window's last bar close.
 - **Previous day's high and low (PDH, PDL):** from the previous trading day's regular-hours bars.
 - **Swing high:** a bar whose high is higher than the highs of the 3 bars before and the 3 bars after it. It is only **confirmed** at the close of the 3rd bar after it, and can only be used from the next bar onwards (no look-ahead). Swing lows are the mirror image.
+- **Early-close days** (official close before 16:00) are excluded.
 - **Average body:** the average of |close − open| over the previous 20 bars (not including the current bar).
 - **Displacement bar:** a bar whose body is at least 2 × the average body, in the direction of the setup.
 - **R:** the distance between the entry price and the stop-loss.
@@ -57,6 +58,11 @@ Do popular ICT concepts, turned into precise rules, show a real edge over random
 6. **Stop-loss:** the sweep low minus the stop buffer.
 7. **Target:** 2R.
 8. **Limits:** one trade per level per day; no entries after 15:50.
+
+A break only counts when price crosses the level from inside (previous bar, or the day's open
+for the first bar). After a failed break, a new break requires a close back inside the level
+first. On the day after an early close, PDL/PDH come from that early-close session. If the
+entry bar opens at or beyond the stop, no trade is taken.
 
 ## Setup B: Fair value gap (bullish)
 
@@ -116,3 +122,5 @@ Anything else is reported as **no evidence of an edge**.
 | Date | Change | Reason |
 | --- | --- | --- |
 | 2026-11-17 | Document created and frozen | Pre-registration before any data was downloaded |
+| 2026-11-17 | Early-close days are excluded from all ICT tests; bars are filtered by the official trading calendar | Data issue found before testing: after-hours bars on early-close days were being treated as regular trading, and the pre-registered windows do not define a 13:00 close |
+| 2026-11-18 | Break must be a fresh crossing of the level | Hand check found 655 of 1355 dev trades used a break while price was already beyond the level (search restarted every 6 bars). This did not match the definition of a sweep. Change made on conceptual grounds; flagged and unflagged trades had similar average R in the dev run, so it was not chosen to improve results. Also add clarifications decided before the first run: on the day after an early close, PDL/PDH come from that early-close session; if the entry bar opens at or beyond the stop, no trade is taken. |
